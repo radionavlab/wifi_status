@@ -34,8 +34,6 @@ bool Pinger::ping (std::string host) {
     
     int result = boost::process::system(command, boost::process::std_out > boost::process::null);
 
-    std::cout << "result: " << result << std::endl;
-
     boost::this_thread::sleep_for(boost::chrono::milliseconds{100});
 
     return (result == 0);
@@ -70,8 +68,6 @@ mg_msgs::WifiStatus get_wifi_status() {
         ret.interface = "<none>";
         return ret; 
     }
-    
-    ROS_INFO("loop");
 
     // Parse words
     mg_msgs::WifiStatus ret;
@@ -102,13 +98,31 @@ int main(int argc, char** argv){
 	const double rate = 10.0;
 	ros::Rate loop_rate(rate);
 
+    std::string ground_ip;
+    std::string refnet_ip;
+
+    node.param<std::string>("ground_ip", ground_ip, "localhost");
+    node.param<std::string>("refnet_ip", refnet_ip, "localhost");
+
     std::vector<std::string> ping_hosts;
-    ping_hosts.push_back("8.8.8.8");
+    ping_hosts.push_back("4.2.2.1");
+    ping_hosts.push_back(refnet_ip);
+    ping_hosts.push_back(ground_ip);
 
-    Pinger pingy_boi("8.8.8.8", "googel", node);
-    pingy_boi.start();
+    std::vector<std::string> ping_names;
+    ping_names.push_back("ping_internet");
+    ping_names.push_back("ping_refnet");
+    ping_names.push_back("ping_ground");
 
-    std::cout << "Thread is started!!!!!!!!!!!!!!!!!!" << std::endl;
+    std::vector<Pinger*> pingers;
+
+    for (int i = 0; i < ping_hosts.size(); i++) {
+        Pinger* pingy_boi = new Pinger(ping_hosts[i], ping_names[i], node); 
+        pingy_boi->start();
+        pingers.push_back(pingy_boi);
+    }
+
+    ROS_INFO("Threads started");    
 
 	while (ros::ok()) {
 		ros::spinOnce();

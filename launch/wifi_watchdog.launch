@@ -1,0 +1,18 @@
+<launch>
+    <arg name="ground_ip" default="localhost"/>
+    <arg name="refnet_ip" default="refnet1.ae.utexas.edu"/>
+  
+<node pkg="wifi_watchdog"
+    type="wifi_watchdog"
+    name="wifi_watchdog"
+    output="screen">
+
+    <!-- IP of ground control station -->
+    <param name="ground_ip" value="$(arg ground_ip)"/>
+
+    <!-- IP of ppengine refnet machine -->
+    <param name="refnet_ip" value="$(arg refnet_ip)"/>
+
+  </node>
+</launch>
+
